@@ -1,0 +1,49 @@
+{
+  "name": "i18n-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-ready, type-safe internationalization (i18n) starter template with multi-language validation gates, XSS defense, RTL layout support, and 40 locale resources.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "bun@1.3.5",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locales": "./src/locales.ts",
+    "./validation": "./src/locale-validation.ts"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "typecheck": "tsc -b",
+    "check": "bun run test && bun run typecheck",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset tag"
+  },
+  "dependencies": {
+    "i18next": "^26.4.2",
+    "react-i18next": "^17.0.15"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}
