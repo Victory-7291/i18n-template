@@ -18,7 +18,8 @@
     "check": "bun run test && bun run typecheck",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "changeset tag"
+    "release": "changeset tag",
+    "build:cli": "cd cli && bun run build"
   },
   "dependencies": {
     "i18next": "^26.4.2",

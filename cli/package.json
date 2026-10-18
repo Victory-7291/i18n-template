@@ -1,0 +1,54 @@
+{
+  "name": "create-i18n-template",
+  "version": "0.1.0",
+  "description": "Scaffold a type-safe i18n package (i18next + react-i18next, 40 locales, validation gates, RTL support) into an existing project",
+  "type": "module",
+  "license": "MIT",
+  "author": "Victory-7291",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Victory-7291/i18n-template.git",
+    "directory": "cli"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "keywords": [
+    "i18n",
+    "i18next",
+    "react-i18next",
+    "internationalization",
+    "localization",
+    "rtl",
+    "locales",
+    "translation",
+    "starter-template",
+    "cli"
+  ],
+  "bin": {
+    "create-i18n-template": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.1.0",
+    "commander": "^14.0.3",
+    "giget": "^3.3.1",
+    "nypm": "^0.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

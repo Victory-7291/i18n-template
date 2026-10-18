@@ -2,6 +2,62 @@
 
 A type-safe internationalization (i18n) starter template for React, Vite, Next.js, and monorepos. Built on top of `i18next` and `react-i18next`, this template provides 40 locale dictionaries, automated structural parity checks, placeholder consistency checks, payload sanitization, automatic RTL layout direction switching, and browser-native number and date formatters.
 
+## Installation
+
+The template is designed to be added to an existing project as a shared package (for example `packages/i18n` in a Turborepo or Bun workspace). The `create-i18n-template` CLI downloads the template, strips maintainer-only files, renames the package, and installs dependencies.
+
+### Quick start
+
+Run the wizard without arguments:
+
+```bash
+# Bun (recommended)
+bun create i18n-template
+
+# npm
+npm create i18n-template@latest
+
+# pnpm
+pnpm create i18n-template
+
+# or npx (zero-install)
+npx -y create-i18n-template@latest
+```
+
+The wizard asks for the parent directory (default `packages`) and creates `<parent>/i18n`. The package name defaults to `@repo/i18n`, and the package manager is detected from the lockfile in the current directory.
+
+Or pass everything as flags:
+
+```bash
+# Create packages/i18n named @repo/i18n (auto-detected package manager)
+bun create i18n-template -p packages
+
+# Custom package name
+bun create i18n-template -p packages -n @acme/i18n
+
+# Scoped name as positional argument
+bun create i18n-template @acme/i18n --path packages --pm pnpm
+```
+
+### CLI options
+
+| Flag | Description | Default |
+| :--- | :--- | :--- |
+| `[target]` | Parent directory path, or a scoped package name such as `@repo/i18n` | Interactive prompt |
+| `-p, --path <path>` | Parent directory where the `i18n` package folder is created | `packages` |
+| `-n, --name <name>` | Package name written to `package.json` | `@repo/<folder>` |
+| `-d, --dir <dir>` | Alias for `-p, --path` | Same as `--path` |
+| `--pm, --package-manager <pm>` | Package manager: `bun`, `pnpm`, `npm`, `yarn` | Auto-detected / `bun` |
+| `--skip-install` | Skip automated dependency installation | `false` |
+| `--branch <branch>` | Git branch or tag to download | `main` |
+
+### After scaffolding
+
+1. Add the package to your app's dependencies: `"@repo/i18n": "workspace:*"`.
+2. Run the install command of your package manager at the monorepo root.
+3. Import from the package: `import { useTranslation, changeLanguage } from "@repo/i18n";`.
+4. Run `bun run check` inside `packages/i18n` to execute the locale validation gates.
+
 ## Architecture and validation gates
 
 Frontend localization often degrades as applications grow. Common issues include missing keys in secondary languages, altered interpolation variables that crash components, and accidental script tags or phishing links inside translation files.
@@ -27,7 +83,17 @@ This template uses three validation mechanisms in `src/locale-validation.ts` to 
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                 # Automated quality gate and test workflow
-│       └── release.yml            # Automated release and tagging workflow
+│       └── release.yml            # Automated release, tagging, and CLI publish workflow
+├── cli/                           # create-i18n-template CLI source (published to npm)
+│   ├── src/
+│   │   ├── index.ts               # Commander entry point and flag definitions
+│   │   ├── initialize.ts          # Interactive wizard and orchestration
+│   │   ├── download.ts            # GitHub template download with git clone fallback
+│   │   ├── cleanup.ts             # Removes maintainer-only files from the generated package
+│   │   ├── transform.ts           # Rewrites package.json for the target project
+│   │   └── utils.ts               # Package manager detection and process helpers
+│   ├── package.json
+│   └── tsup.config.ts
 ├── package.json                   # Package configuration and dependency definitions
 ├── tsconfig.json                  # Strict TypeScript configuration with @/* path aliases
 ├── vitest.config.ts               # Vitest runner configuration
@@ -74,6 +140,12 @@ Run the build step:
 
 ```bash
 bun run build
+```
+
+Build the `create-i18n-template` CLI (maintainers only):
+
+```bash
+bun run build:cli
 ```
 
 ## Quick start
@@ -195,3 +267,9 @@ const priceText = formatCurrency(99.9, "USD");
    ```
 
    If any locale omits a key, alters the `{{name}}` variable token, or includes disallowed HTML tags, Vitest reports the exact file and key path.
+
+## Release workflow
+
+`.github/workflows/ci.yml` runs the validation gates, tests, build, and typecheck on every push to `main` and on every pull request.
+
+`.github/workflows/release.yml` runs on every push to `main` (and on manual dispatch). The changesets action opens a Version Packages PR from pending changesets; merging it bumps the template version, updates `CHANGELOG.md`, and tags the release. Independently, the workflow builds `cli/` and publishes `create-i18n-template` to npm with provenance whenever `cli/package.json` declares a version that is not yet on the registry. Publishing requires an `NPM_TOKEN` repository secret; when the secret is absent the step is skipped with a notice.
