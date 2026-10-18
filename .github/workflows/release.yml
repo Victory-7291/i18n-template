@@ -42,6 +42,37 @@ jobs:
       - name: Push git tags
         run: git push origin --tags
 
+      # changesets/action likewise only creates GitHub releases from
+      # `changeset publish` output, so create one here from the CHANGELOG
+      # section of the current version when its tag has no release yet.
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+
+          if ! git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "::notice ::Tag ${TAG} does not exist. Skipping GitHub release."
+            exit 0
+          fi
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Notice: release ${TAG} already exists. Skipping."
+            exit 0
+          fi
+
+          awk -v ver="${VERSION}" 'BEGIN{p=0} /^## /{ if (p) exit; if ($0 == "## " ver) p=1; next } p' CHANGELOG.md > release-notes.md
+
+          if [ -s release-notes.md ]; then
+            gh release create "${TAG}" --title "${TAG}" --notes-file release-notes.md
+          else
+            echo "No CHANGELOG section for ${VERSION}; generating notes from commits."
+            gh release create "${TAG}" --title "${TAG}" --generate-notes
+          fi
+          echo "Created GitHub release ${TAG}."
+
       - name: Build and Publish CLI to NPM
         run: |
           if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
