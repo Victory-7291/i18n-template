@@ -36,6 +36,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # changesets/action only pushes tags when `changeset publish` reports
+      # "New tag:" lines; the `git-tag` script leaves tags on the runner, so
+      # push them explicitly.
+      - name: Push git tags
+        run: git push origin --tags
+
       - name: Build and Publish CLI to NPM
         run: |
           if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
