@@ -1,6 +1,6 @@
 # i18n-template
 
-A type-safe internationalization (i18n) starter template for React, Vite, Next.js, and monorepos. Built on top of `i18next` and `react-i18next`, this template provides 40 locale dictionaries, automated structural parity checks, placeholder consistency checks, payload sanitization, automatic RTL layout direction switching, and browser-native number and date formatters.
+A type-safe internationalization (i18n) starter template for React, Vite, Next.js, and monorepos. Built on top of `i18next` and `react-i18next`, this template ships starter dictionaries for 40 locales with automated structural parity checks, placeholder consistency checks, payload sanitization, automatic RTL layout direction switching, and browser-native number and date formatters.
 
 ## Installation
 
@@ -75,6 +75,10 @@ This template uses three validation mechanisms in `src/locale-validation.ts` to 
 3. Bidirectional text and RTL layout
    The template recognizes right-to-left languages including Arabic (`ar`), Persian (`fa`), Hebrew (`he`), and Urdu (`ur`). When you switch to an RTL locale, `changeLanguage` updates `document.documentElement.dir` to `rtl` and sets the `lang` attribute. Pair this with CSS logical properties so interfaces mirror without extra CSS overrides.
 
+When validation runs: the gates execute in the test suite, in CI, and on import in non-production environments (tests, local development, dev SSR). Production bundles skip validation entirely, so a dictionary defect can never crash a deployed app at import time. Locale codes are also enforced at compile time: `SupportedLocale` is a literal union of the 40 bundled codes, so `changeLanguage("xx")` fails `tsc` before it can fail at runtime.
+
+Because the package loads dictionaries with plain static imports, it works in every bundler — Vite, webpack, Turbopack, and Bun — with no Vite-specific APIs.
+
 ## Project structure
 
 ```text
@@ -104,7 +108,6 @@ This template uses three validation mechanisms in `src/locale-validation.ts` to 
     ├── locales.ts                 # Dynamic locale loader, RTL mappings, and DOM direction synchronization
     ├── locale-validation.ts       # Structural parity, placeholder, and payload security validators
     ├── locale-validation.test.ts  # Vitest test suite covering all 40 locale dictionaries
-    ├── vite-env.d.ts              # Type declarations for import.meta.glob
     └── locales/                   # 40 locale dictionary files
         ├── en.json                # English reference dictionary
         ├── zh-CN.json             # Simplified Chinese
@@ -136,12 +139,6 @@ Run both test and typecheck gates:
 bun run check
 ```
 
-Run the build step:
-
-```bash
-bun run build
-```
-
 Build the `create-i18n-template` CLI (maintainers only):
 
 ```bash
@@ -151,6 +148,8 @@ bun run build:cli
 ## Quick start
 
 ### React integration
+
+React 19 is a required peer dependency; install it alongside the package in your app.
 
 Use the `useTranslation` hook inside React components, or use the top-level `t()` function in non-React utilities:
 
@@ -174,6 +173,8 @@ export function OrganizationBanner() {
   );
 }
 ```
+
+Interpolation is intentionally unescaped (`escapeValue: false`) because React escapes text nodes. Render `t()` output through React elements or text nodes only — never pass it to `dangerouslySetInnerHTML` or `element.innerHTML`.
 
 ### Language switching and RTL support
 

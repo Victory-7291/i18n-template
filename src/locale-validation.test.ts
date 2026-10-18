@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { t } from ".";
 import en from "./locales/en.json";
-import { localeMessages } from "./locales";
+import { localeMessages, supportedLocales, type SupportedLocale } from "./locales";
 import { validateLocaleMessages } from "./locale-validation";
 
 describe("locale validation", () => {
@@ -16,6 +16,17 @@ describe("locale validation", () => {
     for (const [locale, messages] of Object.entries(localeMessages)) {
       expect(validateLocaleMessages(messages), locale).toEqual([]);
     }
+  });
+
+  it("exposes exactly the bundled locales as a compile-time union", () => {
+    expect(supportedLocales).toHaveLength(40);
+
+    const known: SupportedLocale = "zh-CN";
+    expect(supportedLocales).toContain(known);
+
+    // @ts-expect-error unknown locale codes are rejected by the type system
+    const unknown: SupportedLocale = "xx-NOPE";
+    expect(supportedLocales).not.toContain(unknown);
   });
 
   it("rejects missing and extra nested keys", () => {
@@ -64,6 +75,7 @@ describe("locale validation", () => {
     const reference = {
       script: "Create company",
       handler: "Create company",
+      unquotedHandler: "Create company",
       js: "Create company",
       data: "Create company",
       url: "Create company",
@@ -75,6 +87,7 @@ describe("locale validation", () => {
         {
           script: "<script>alert(1)</script>",
           handler: '<span ONCLICK="alert(1)">Create</span>',
+          unquotedHandler: "<a href=# onclick=alert(1)>Create</a>",
           js: "javascript:alert(1)",
           data: "data:text/html,hello",
           url: "https://example.test",
@@ -86,12 +99,32 @@ describe("locale validation", () => {
       expect.arrayContaining([
         "script contains disallowed <script",
         "handler contains disallowed event-handler attribute",
+        "unquotedHandler contains disallowed event-handler attribute",
         "js contains disallowed javascript:",
         "data contains disallowed data:",
         "url contains disallowed unexpected URL",
         "html contains disallowed raw HTML tag",
       ]),
     );
+  });
+
+  it("allows prose that merely resembles a payload", () => {
+    const reference = {
+      date: "Date",
+      status: "Status",
+      format: "Format",
+    };
+
+    expect(
+      validateLocaleMessages(
+        {
+          date: "Data: 2026-01-01",
+          status: "Modo online = ativo",
+          format: "Formato: texto/simples",
+        },
+        reference,
+      ),
+    ).toEqual([]);
   });
 
   it("caps localized string length relative to English", () => {
@@ -121,4 +154,3 @@ describe("locale validation", () => {
     expect(formatCurrency(99.9, "USD", "en")).toContain("99.90");
   });
 });
-

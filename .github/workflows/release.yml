@@ -28,9 +28,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build template
-        run: bun run build
-
       - name: Create version PR or tag
         uses: changesets/action@v1
         with:

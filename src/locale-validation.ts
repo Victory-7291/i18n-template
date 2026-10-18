@@ -18,8 +18,16 @@ function hasRawHtml(value: string) {
   return /<\/?[A-Za-z][A-Za-z0-9:-]*(?:\s[^>]*)?>/.test(value);
 }
 
+// An `on*=` assignment is only an executable handler when it sits inside a tag
+// or is followed by a quoted value; prose such as "online = true" must pass.
 function hasEventHandlerAttribute(value: string) {
-  return /\son[A-Za-z]+\s*=/i.test(value);
+  return /<[^>]*\son[a-z]+\s*=/i.test(value) || /\son[a-z]+\s*=\s*["'`]/i.test(value);
+}
+
+// Only a data: URL carrying a MIME type (`data:text/html,...`) is a payload;
+// natural-language colons such as the Portuguese "Data: ..." must pass.
+function hasDataUrl(value: string) {
+  return /\bdata:[a-z][a-z0-9!#$&^_.+-]*\/[a-z0-9!#$&^_.+-]*/i.test(value);
 }
 
 function urlsIn(value: string) {
@@ -31,7 +39,7 @@ function hasBlockedData(value: string, englishValue: string) {
     [/<script\b/i.test(value), /<script\b/i.test(englishValue), "<script"],
     [hasEventHandlerAttribute(value), hasEventHandlerAttribute(englishValue), "event-handler attribute"],
     [/\bjavascript\s*:/i.test(value), /\bjavascript\s*:/i.test(englishValue), "javascript:"],
-    [/\bdata\s*:/i.test(value), /\bdata\s*:/i.test(englishValue), "data:"],
+    [hasDataUrl(value), hasDataUrl(englishValue), "data:"],
     [hasRawHtml(value), hasRawHtml(englishValue), "raw HTML tag"],
   ];
 

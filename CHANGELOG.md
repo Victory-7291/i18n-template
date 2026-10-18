@@ -1,5 +1,11 @@
 # i18n-template
 
+## 2.0.0
+
+### Major Changes
+
+- Harden the template: derive `SupportedLocale` as a real literal union from static dictionary imports (removes the Vite-only `import.meta.glob` loader, enabling webpack/Next.js), require React 19 as a peer dependency, tighten the `data:` URL and event-handler security checks against natural-language false positives, skip import-time validation in production bundles, drop the unused `react-dom` peer, and remove the no-op `build` script.
+
 ## 1.0.0
 
 ### Major Changes
